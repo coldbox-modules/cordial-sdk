@@ -63,7 +63,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 }
             } );
 
-            it( "returns mixed success and failure details for invalid subscribers", function() {
+            it( "returns mixed success and failure details for blank subscribers", function() {
                 if ( !hasIntegrationConfig() ) {
                     skip( "No integration configuration found. Set CORDIAL_SDK_API_KEY, CORDIAL_SDK_BASE_URL, CORDIAL_SDK_TEST_LIST_KEY, and CORDIAL_SDK_TEST_EMAILS environment variables to run this test." );
                     return;
@@ -72,10 +72,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 var listKey = getSystemSetting( "CORDIAL_SDK_TEST_LIST_KEY", "" );
                 var validEmail = getTestEmails()[ 1 ];
 
-                var result = variables.cordialClient.create(
-                    listKey = listKey,
-                    subscribers = [ validEmail, "not-an-email" ]
-                );
+                var result = variables.cordialClient.create( listKey = listKey, subscribers = [ validEmail, "   " ] );
 
                 expect( result.total ).toBe( 2 );
                 expect( result.succeeded ).toBeGTE( 1 );

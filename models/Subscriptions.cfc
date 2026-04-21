@@ -231,7 +231,7 @@ component singleton accessors="true" {
                     preflightFailures,
                     buildErrorResult(
                         email = email,
-                        errorMessage = "Invalid subscriber email [#email#].",
+                        errorMessage = "Subscriber email cannot be blank.",
                         exceptionType = "InvalidSubscriber"
                     )
                 );
@@ -249,7 +249,8 @@ component singleton accessors="true" {
     }
 
     private boolean function isValidEmail( required string email ) {
-        return len( arguments.email ) && isValid( "email", arguments.email );
+        // Intentionally avoid format validation; Cordial should decide what it accepts.
+        return len( arguments.email );
     }
 
     private numeric function normalizeConcurrency( required numeric value ) {

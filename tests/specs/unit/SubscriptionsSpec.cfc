@@ -136,10 +136,10 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 } ).toThrow( type = "cordial-sdk.InvalidSubscribers" );
             } );
 
-            it( "returns failed results for invalid email values while still processing valid emails", function() {
+            it( "returns failed results for blank subscriber values while still processing valid emails", function() {
                 var result = variables.client.create(
                     listKey = "myList",
-                    subscribers = [ "person@example.com", "invalid" ]
+                    subscribers = [ "person@example.com", "   " ]
                 );
 
                 expect( result.total ).toBe( 2 );
@@ -147,7 +147,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.succeeded ).toBe( 1 );
                 expect( result.failed ).toBe( 1 );
                 expect( result.results ).toHaveLength( 2 );
-                expect( result.results[ 1 ].subscriber ).toBe( "invalid" );
+                expect( result.results[ 1 ].subscriber ).toBe( "" );
                 expect( result.results[ 1 ].success ).toBeFalse();
                 expect( result.results[ 1 ].statusCode ).toBe( 0 );
                 expect( result.results[ 2 ].subscriber ).toBe( "person@example.com" );
@@ -159,32 +159,26 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                     result.results.filter( function( item ) {
                         return !item.success;
                     } )[ 1 ].error
-                ).toInclude( "Invalid subscriber email" );
+                ).toInclude( "Subscriber email cannot be blank." );
             } );
 
-            it( "returns mixed success and failure details for cancel invalid subscribers", function() {
-                var result = variables.client.cancel(
-                    listKey = "myList",
-                    subscribers = [ "person@example.com", "not-an-email" ]
-                );
+            it( "returns mixed success and failure details for cancel when a subscriber is blank", function() {
+                var result = variables.client.cancel( listKey = "myList", subscribers = [ "person@example.com", "" ] );
 
                 expect( result.total ).toBe( 2 );
                 expect( result.success ).toBeFalse();
                 expect( result.succeeded ).toBe( 1 );
                 expect( result.failed ).toBe( 1 );
                 expect( result.results ).toHaveLength( 2 );
-                expect( result.results[ 1 ].subscriber ).toBe( "not-an-email" );
+                expect( result.results[ 1 ].subscriber ).toBe( "" );
                 expect( result.results[ 1 ].exceptionType ).toBe( "InvalidSubscriber" );
                 expect( result.results[ 2 ].subscriber ).toBe( "person@example.com" );
                 expect( result.results[ 2 ].success ).toBeTrue();
                 expect( variables.hyper ).toHaveSentCount( 1 );
             } );
 
-            it( "returns only preflight failures for cancel when all subscribers are invalid", function() {
-                var result = variables.client.cancel(
-                    listKey = "myList",
-                    subscribers = [ "not-an-email-1", "not-an-email-2" ]
-                );
+            it( "returns only preflight failures for cancel when all subscribers are blank", function() {
+                var result = variables.client.cancel( listKey = "myList", subscribers = [ "", "   " ] );
 
                 expect( result.total ).toBe( 2 );
                 expect( result.success ).toBeFalse();
@@ -196,11 +190,8 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( variables.hyper ).toHaveSentNothing();
             } );
 
-            it( "returns only preflight failures when all subscribers are invalid and sends no requests", function() {
-                var result = variables.client.create(
-                    listKey = "myList",
-                    subscribers = [ "invalid-one", "invalid-two" ]
-                );
+            it( "returns only preflight failures when all subscribers are blank and sends no requests", function() {
+                var result = variables.client.create( listKey = "myList", subscribers = [ "", "   " ] );
 
                 expect( result.total ).toBe( 2 );
                 expect( result.success ).toBeFalse();
@@ -210,6 +201,22 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.results[ 1 ].exceptionType ).toBe( "InvalidSubscriber" );
                 expect( result.results[ 2 ].exceptionType ).toBe( "InvalidSubscriber" );
                 expect( variables.hyper ).toHaveSentNothing();
+            } );
+
+            it( "passes non-email subscriber strings through to Cordial", function() {
+                var result = variables.client.create( listKey = "myList", subscribers = [ "not-an-email" ] );
+
+                expect( result.total ).toBe( 1 );
+                expect( result.success ).toBeTrue();
+                expect( result.succeeded ).toBe( 1 );
+                expect( result.failed ).toBe( 0 );
+                expect( variables.hyper ).toHaveSentCount( 1 );
+                expect( variables.hyper ).toHaveSentRequest( function( req ) {
+                    var body = req.getBody();
+                    return req.getMethod() == "POST"
+                    && req.getUrl() == "/v2/contacts"
+                    && body.channels.email.address == "not-an-email";
+                } );
             } );
 
             it( "marks operation result as failed when Cordial returns a non-2xx response", function() {

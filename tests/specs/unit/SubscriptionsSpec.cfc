@@ -111,9 +111,9 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( variables.hyper ).toHaveSentCount( 1 );
 
                 expect( variables.hyper ).toHaveSentRequest( function( req ) {
+                    var encodedEmail = listLast( req.getUrl(), ":" );
                     return req.getMethod() == "PUT"
-                    && findNoCase( "%2B", req.getUrl() )
-                    && findNoCase( "%25", req.getUrl() );
+                    && urlDecode( encodedEmail ) == "first.last+promo%tag@example.com";
                 } );
             } );
 

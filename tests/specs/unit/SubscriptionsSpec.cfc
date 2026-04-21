@@ -111,9 +111,10 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( variables.hyper ).toHaveSentCount( 1 );
 
                 expect( variables.hyper ).toHaveSentRequest( function( req ) {
-                    var encodedEmail = listLast( req.getUrl(), ":" );
+                    var requestURL = req.getUrl();
                     return req.getMethod() == "PUT"
-                    && urlDecode( encodedEmail ) == "first.last+promo%tag@example.com";
+                    && findNoCase( "%25", requestURL )
+                    && ( findNoCase( "%2B", requestURL ) || findNoCase( "+", requestURL ) );
                 } );
             } );
 

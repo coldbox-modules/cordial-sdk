@@ -273,13 +273,13 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.success ).toBeFalse();
                 expect( result.succeeded ).toBe( 1 );
                 expect( result.failed ).toBe( 1 );
-                expect(
-                    result.results
-                        .filter( function( item ) {
-                            return item.exceptionType == "AsyncFutureBoom";
-                        } )
-                        .len()
-                ).toBe( 1 );
+                var failedResults = result.results.filter( function( item ) {
+                    return !item.success;
+                } );
+                expect( failedResults ).toHaveLength( 1 );
+                expect( failedResults[ 1 ].subscriber ).toBe( "explode@example.com" );
+                expect( failedResults[ 1 ].statusCode ).toBe( 0 );
+                expect( failedResults[ 1 ].error ).toInclude( "Boom from fake response callback" );
             } );
 
             it( "falls back to sequential sends when async manager is missing", function() {

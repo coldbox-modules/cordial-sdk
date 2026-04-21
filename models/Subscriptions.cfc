@@ -192,15 +192,13 @@ component singleton accessors="true" {
     }
 
     private struct function buildResponseResult( required string email, required any response ) {
-        var code = response.getStatusCode();
-
         return {
-            subscriber: arguments.email,
-            success: code >= 200 && code < 300,
-            statusCode: code,
-            response: response,
-            error: "",
-            exceptionType: ""
+            "subscriber": arguments.email,
+            "success": arguments.response.isSuccess(),
+            "statusCode": arguments.response.getStatusCode(),
+            "response": arguments.response.getMemento(),
+            "error": arguments.response.getStatusText(),
+            "exceptionType": ""
         };
     }
 
@@ -210,12 +208,12 @@ component singleton accessors="true" {
         string exceptionType = ""
     ) {
         return {
-            subscriber: arguments.email,
-            success: false,
-            statusCode: 0,
-            response: javacast( "null", 0 ),
-            error: arguments.errorMessage,
-            exceptionType: arguments.exceptionType
+            "subscriber": arguments.email,
+            "success": false,
+            "statusCode": 0,
+            "response": javacast( "null", 0 ),
+            "error": arguments.errorMessage,
+            "exceptionType": arguments.exceptionType
         };
     }
 
@@ -242,9 +240,9 @@ component singleton accessors="true" {
         }
 
         return {
-            validEmails: validEmails,
-            preflightFailures: preflightFailures,
-            totalRequested: arguments.subscribers.len()
+            "validEmails": validEmails,
+            "preflightFailures": preflightFailures,
+            "totalRequested": arguments.subscribers.len()
         };
     }
 
@@ -270,11 +268,11 @@ component singleton accessors="true" {
 
     private struct function newAggregateResult( required numeric total ) {
         return {
-            success: false,
-            total: arguments.total,
-            succeeded: 0,
-            failed: 0,
-            results: []
+            "success": false,
+            "total": arguments.total,
+            "succeeded": 0,
+            "failed": 0,
+            "results": []
         };
     }
 

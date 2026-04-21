@@ -263,10 +263,10 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 variables.hyper
                     .fake( {
                         "/v2/contacts": function( newFakeResponse, req ) {
-                            if ( req.getBody().channels.email.address == "explode@example.com" ) {
-                                throw( type = "AsyncFutureBoom", message = "Boom from fake response callback" );
-                            }
-                            return newFakeResponse( 201, "Created", "{}" );
+                            return [
+                                newFakeResponse( 500, "Internal Server Error", "{}" ),
+                                newFakeResponse( 201, "Created", "{}" )
+                            ];
                         }
                     } )
                     .preventStrayRequests();
@@ -285,9 +285,15 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                     return !item.success;
                 } );
                 expect( failedResults ).toHaveLength( 1 );
-                expect( failedResults[ 1 ].subscriber ).toBe( "explode@example.com" );
-                expect( failedResults[ 1 ].statusCode ).toBe( 0 );
-                expect( failedResults[ 1 ].error ).toInclude( "Boom from fake response callback" );
+                expect( failedResults[ 1 ].statusCode ).toBe( 500 );
+                expect( failedResults[ 1 ].error ).toInclude( "Internal Server Error" );
+                expect(
+                    result.results
+                        .map( function( item ) {
+                            return item.subscriber;
+                        } )
+                        .sort( "textnocase" )
+                ).toBe( [ "explode@example.com", "ok@example.com" ].sort( "textnocase" ) );
             } );
 
             it( "falls back to sequential sends when async manager is missing", function() {

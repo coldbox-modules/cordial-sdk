@@ -59,7 +59,7 @@ jobs:
           CORDIAL_SDK_TEST_EMAILS: ${{ secrets.CORDIAL_SDK_TEST_EMAILS }}
         run: |
           box server start serverConfigFile="server-${{ matrix.cfengine }}.json" --noSaveSettings --noOpenBrowser --debug
-          curl http://127.0.0.1:49619
+          curl http://127.0.0.1:60298
 
       - name: Run Tests
         env:

@@ -1,0 +1,38 @@
+{
+    "name":"cordial-sdk",
+    "version":"1.0.0",
+    "author":"Ortus Solutions",
+    "location":"forgeboxStorage",
+    "homepage":"https://github.com/coldbox-modules/cordial-sdk",
+    "documentation":"https://github.com/coldbox-modules/cordial-sdk",
+    "repository":{
+        "type":"git",
+        "URL":"https://github.com/coldbox-modules/cordial-sdk"
+    },
+    "bugs":"https://github.com/coldbox-modules/cordial-sdk/issues",
+    "slug":"cordial-sdk",
+    "shortDescription":"CFML SDK to interact with the Cordial API",
+    "description":"CFML SDK to interact with the Cordial API",
+    "type":"modules",
+    "scripts":{
+        "format":"cfformat run models/**/*.cfc,tests/Application.cfc,tests/resources/ModuleIntegrationSpec.cfc,tests/specs/**/*.cfc,ModuleConfig.cfc --overwrite",
+        "format:check":"cfformat check models/**/*.cfc,tests/Application.cfc,tests/resources/ModuleIntegrationSpec.cfc,tests/specs/**/*.cfc,ModuleConfig.cfc"
+    },
+    "dependencies":{
+        "hyper":"^8.2.0"
+    },
+    "devDependencies":{
+        "testbox":"^6.0.0",
+        "coldbox":"^8.0.0"
+    },
+    "installPaths":{
+        "testbox":"testbox/",
+        "coldbox":"tests/resources/app/coldbox/",
+        "hyper":"modules/hyper/"
+    },
+    "ignore":[
+        "**/.*",
+        "test",
+        "tests"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "web":{
+        "http":{
+            "port":"49619"
+        }
+    },
+    "app":{
+        "cfengine":"lucee@5"
+    },
+    "background":true,
+    "openBrowser=false":true
+}

@@ -1,0 +1,9 @@
+/testbox
+/tests/results
+/tests/resources/app/coldbox
+/node_modules
+/modules
+.env
+.vscode
+.engine
+.DS_Store

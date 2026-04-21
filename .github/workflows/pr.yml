@@ -1,0 +1,20 @@
+name: Pull Requests
+
+on:
+  push:
+    branches-ignore:
+      - "main"
+      - "development"
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CORDIAL_SDK_API_KEY: ${{ secrets.CORDIAL_SDK_API_KEY }}
+      CORDIAL_SDK_BASE_URL: ${{ secrets.CORDIAL_SDK_BASE_URL }}
+      CORDIAL_SDK_TEST_LIST_KEY: ${{ secrets.CORDIAL_SDK_TEST_LIST_KEY }}
+      CORDIAL_SDK_TEST_EMAILS: ${{ secrets.CORDIAL_SDK_TEST_EMAILS }}

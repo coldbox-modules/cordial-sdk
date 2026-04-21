@@ -1,0 +1,36 @@
+name: CFFormat
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [cfformat]
+  push:
+    branches-ignore:
+      - "main"
+      - "development"
+    paths:
+      - '**.cfc'
+      - '.github/workflows/*.yml'
+  pull_request:
+    branches:
+      - development
+    paths:
+      - '**.cfc'
+      - '.github/workflows/*.yml'
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - uses: Ortus-Solutions/commandbox-action@v1.0.3
+        with:
+          cmd: run-script format
+
+      - name: Commit Format Changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Apply cfformat changes

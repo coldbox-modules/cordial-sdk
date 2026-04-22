@@ -222,7 +222,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
             it( "marks operation result as failed when Cordial returns a non-2xx response", function() {
                 variables.hyper
                     .fake( {
-                        "/v2/contacts": function( newFakeResponse, req ) {
+                        "*/v2/contacts": function( newFakeResponse, req ) {
                             return newFakeResponse( 429, "Too Many Requests", "{}" );
                         }
                     } )
@@ -242,7 +242,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
             it( "marks cancel results as failed when Cordial returns non-2xx", function() {
                 variables.hyper
                     .fake( {
-                        "/v2/contacts/email:*": function( newFakeResponse, req ) {
+                        "*/v2/contacts/email:*": function( newFakeResponse, req ) {
                             return newFakeResponse( 503, "Service Unavailable", "{}" );
                         }
                     } )
@@ -263,7 +263,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 variables.fakeInvocationCount = 0;
                 variables.hyper
                     .fake( {
-                        "/v2/contacts": function( newFakeResponse, req ) {
+                        "*/v2/contacts": function( newFakeResponse, req ) {
                             variables.fakeInvocationCount++;
                             if ( variables.fakeInvocationCount == 1 ) {
                                 throw( type = "AsyncFutureBoom", message = "Boom from fake response callback" );
@@ -473,10 +473,10 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
         variables.hyper
             .clearFakes()
             .fake( {
-                "/v2/contacts": function( newFakeResponse, req ) {
+                "*/v2/contacts": function( newFakeResponse, req ) {
                     return newFakeResponse( 201, "Created", "{}" );
                 },
-                "/v2/contacts/email:*": function( newFakeResponse, req ) {
+                "*/v2/contacts/email:*": function( newFakeResponse, req ) {
                     return newFakeResponse( 200, "OK", "{}" );
                 }
             } )

@@ -19,7 +19,7 @@
         "format:check":"cfformat check models/**/*.cfc,tests/Application.cfc,tests/resources/ModuleIntegrationSpec.cfc,tests/specs/**/*.cfc,ModuleConfig.cfc"
     },
     "dependencies":{
-        "hyper":"^8.2.0"
+        "hyper":"^8.2.2"
     },
     "devDependencies":{
         "testbox":"^6.0.0",

@@ -104,7 +104,7 @@ component singleton accessors="true" {
         required string email,
         required boolean forceSubscribe
     ) {
-        var payload = { channels: { email: { address: arguments.email, subscribeStatus: "subscribed" } } };
+        var payload = { "channels": { "email": { "address": arguments.email, "subscribeStatus": "subscribed" } } };
 
         payload[ arguments.listKey ] = true;
 
@@ -192,11 +192,13 @@ component singleton accessors="true" {
     }
 
     private struct function buildResponseResult( required string email, required any response ) {
+        var memento = arguments.response.getMemento();
+        memento[ "request" ] = arguments.response.getRequest().getMemento();
         return {
             "subscriber": arguments.email,
             "success": arguments.response.isSuccess(),
             "statusCode": arguments.response.getStatusCode(),
-            "response": arguments.response.getMemento(),
+            "response": memento,
             "error": arguments.response.getStatusText(),
             "exceptionType": ""
         };

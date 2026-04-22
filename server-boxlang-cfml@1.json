@@ -1,23 +1,23 @@
 {
-  "name": "cordial-sdk-boxlang-cfml@1",
-  "app": {
-    "serverHomeDirectory": ".engine/boxlangCFML",
-    "cfengine": "boxlang@^1.0.0"
-  },
-  "web": {
-    "http": {
-      "port": "60298"
+    "name":"cordial-sdk-boxlang-cfml@1",
+    "app":{
+        "serverHomeDirectory":".engine/boxlangCFML",
+        "cfengine":"boxlang@^1.0.0"
     },
-    "rewrites": {
-      "enable": "true"
+    "web":{
+        "http":{
+            "port":"60298"
+        },
+        "rewrites":{
+            "enable":"true"
+        }
+    },
+    "JVM":{
+        "heapSize":"1024",
+        "javaVersion":"openjdk21_jre"
+    },
+    "openBrowser":"false",
+    "scripts":{
+        "onServerInitialInstall":"install bx-compat-cfml,bx-esapi --noSave"
     }
-  },
-  "JVM": {
-    "heapSize": "1024",
-    "javaVersion": "openjdk21_jre"
-  },
-  "openBrowser": "false",
-  "scripts": {
-    "onServerInitialInstall": "install bx-compat-cfml,bx-esapi --noSave"
-  }
 }

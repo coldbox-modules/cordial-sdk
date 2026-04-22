@@ -12,10 +12,11 @@ component {
     testsPath = getDirectoryFromPath( getCurrentTemplatePath() );
     this.mappings[ "/tests" ] = testsPath;
     rootPath = reReplaceNoCase( this.mappings[ "/tests" ], "tests(\\|/)", "" );
+    normalizedRootPath = reReplace( rootPath, "[\\\\/]$", "" );
     this.mappings[ "/root" ] = rootPath;
     this.mappings[ "/cordial-sdk" ] = rootPath;
     this.mappings[ "/hyper" ] = rootPath & "modules/hyper";
-    this.mappings[ "/testingModuleRoot" ] = listDeleteAt( rootPath, listLen( rootPath, "\/" ), "\/" );
+    this.mappings[ "/testingModuleRoot" ] = getDirectoryFromPath( normalizedRootPath );
     this.mappings[ "/app" ] = testsPath & "resources/app";
     this.mappings[ "/coldbox" ] = testsPath & "resources/app/coldbox";
     this.mappings[ "/testbox" ] = rootPath & "testbox";

@@ -65,18 +65,7 @@ jobs:
           box install commandbox-semantic-release
           box config set endpoints.forgebox.APIToken=${{ secrets.FORGEBOX_TOKEN }}
           box config set modules.commandbox-semantic-release.targetBranch=main
-          box config set modules.commandbox-semantic-release.plugins.VerifyConditions=GitHubActionsConditionsVerifier@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.FetchLastRelease=ForgeBoxReleaseFetcher@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.RetrieveCommits=JGitCommitsRetriever@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.ParseCommit=ConventionalChangelogParser@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.FilterCommits=DefaultCommitFilterer@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.AnalyzeCommits=DefaultCommitAnalyzer@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.VerifyRelease=NullReleaseVerifier@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.GenerateNotes=GitHubMarkdownNotesGenerator@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.UpdateChangelog=FileAppendChangelogUpdater@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.CommitArtifacts=NullArtifactsCommitter@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.PublishRelease=ForgeBoxReleasePublisher@commandbox-semantic-release
-          box config set modules.commandbox-semantic-release.plugins.PublicizeRelease=GitHubReleasePublicizer@commandbox-semantic-release
+          box config set modules.commandbox-semantic-release.plugins='{ "VerifyConditions": "GitHubActionsConditionsVerifier@commandbox-semantic-release", "FetchLastRelease": "ForgeBoxReleaseFetcher@commandbox-semantic-release", "RetrieveCommits": "JGitCommitsRetriever@commandbox-semantic-release", "ParseCommit": "ConventionalChangelogParser@commandbox-semantic-release", "FilterCommits": "DefaultCommitFilterer@commandbox-semantic-release", "AnalyzeCommits": "DefaultCommitAnalyzer@commandbox-semantic-release", "VerifyRelease": "NullReleaseVerifier@commandbox-semantic-release", "GenerateNotes": "GitHubMarkdownNotesGenerator@commandbox-semantic-release", "UpdateChangelog": "FileAppendChangelogUpdater@commandbox-semantic-release", "CommitArtifacts": "NullArtifactsCommitter@commandbox-semantic-release", "PublishRelease": "ForgeBoxReleasePublisher@commandbox-semantic-release", "PublicizeRelease": "GitHubReleasePublicizer@commandbox-semantic-release" }'
           box semantic-release
 
       - name: Inform Slack of Build

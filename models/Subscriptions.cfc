@@ -34,12 +34,12 @@ component singleton accessors="true" {
         var shouldForceSubscribe = arguments.forceSubscribe;
         var operationResults = executeInParallel(
             emails = normalized.validEmails,
-            maxConcurrency = normalizeConcurrency( arguments.maxConcurrency ),
-            callback = function( required string email ) {
+            concurrencyLimit = normalizeConcurrency( arguments.maxConcurrency ),
+            callback = function( required string subscriberEmail ) {
                 var payload = buildSubscribePayload(
                     listKey = targetListKey,
-                    email = email,
-                    forceSubscribe = shouldForceSubscribe
+                    subscriberEmail = subscriberEmail,
+                    shouldForceSubscribe = shouldForceSubscribe
                 );
 
                 return hyperClient
@@ -80,16 +80,49 @@ component singleton accessors="true" {
         var targetListKey = arguments.listKey;
         var operationResults = executeInParallel(
             emails = normalized.validEmails,
-            maxConcurrency = normalizeConcurrency( arguments.maxConcurrency ),
-            callback = function( required string email ) {
+            concurrencyLimit = normalizeConcurrency( arguments.maxConcurrency ),
+            callback = function( required string subscriberEmail ) {
                 var payload = {};
                 payload[ targetListKey ] = false;
 
                 return hyperClient
                     .new()
                     .setMethod( "PUT" )
-                    .setUrl( "/v2/contacts/email:#urlEncodedFormat( email )#" )
+                    .setUrl( "/v2/contacts/email:#urlEncodedFormat( subscriberEmail )#" )
                     .setBody( payload );
+            }
+        );
+
+        arrayAppend( result.results, operationResults, true );
+        finalizeResult( result );
+
+        return result;
+    }
+
+    /**
+     * Unsubscribe many subscribers from the email channel.
+     */
+    function unsubscribeAll( required array subscribers, numeric concurrencyLimit = variables.maxConcurrency ) {
+        validateSubscribersArray( arguments.subscribers );
+
+        var normalized = normalizeSubscribers( arguments.subscribers );
+        var result = newAggregateResult( normalized.totalRequested );
+
+        arrayAppend( result.results, normalized.preflightFailures, true );
+
+        if ( !normalized.validEmails.len() ) {
+            finalizeResult( result );
+            return result;
+        }
+
+        var operationResults = executeInParallel(
+            emails = normalized.validEmails,
+            concurrencyLimit = normalizeConcurrency( arguments.concurrencyLimit ),
+            callback = function( required string subscriberEmail ) {
+                return hyperClient
+                    .new()
+                    .setMethod( "PUT" )
+                    .setUrl( "/v2/contacts/email:#urlEncodedFormat( subscriberEmail )#/unsubscribe/email" );
             }
         );
 
@@ -101,14 +134,16 @@ component singleton accessors="true" {
 
     private struct function buildSubscribePayload(
         required string listKey,
-        required string email,
-        required boolean forceSubscribe
+        required string subscriberEmail,
+        required boolean shouldForceSubscribe
     ) {
-        var payload = { "channels": { "email": { "address": arguments.email, "subscribeStatus": "subscribed" } } };
+        var payload = {
+            "channels": { "email": { "address": arguments.subscriberEmail, "subscribeStatus": "subscribed" } }
+        };
 
         payload[ arguments.listKey ] = true;
 
-        if ( arguments.forceSubscribe ) {
+        if ( arguments.shouldForceSubscribe ) {
             payload.forceSubscribe = true;
         }
 
@@ -117,11 +152,11 @@ component singleton accessors="true" {
 
     private array function executeInParallel(
         required array emails,
-        required numeric maxConcurrency,
+        required numeric concurrencyLimit,
         required any callback
     ) {
         var allResults = [];
-        var batches = chunkArray( arguments.emails, arguments.maxConcurrency );
+        var batches = chunkArray( arguments.emails, arguments.concurrencyLimit );
 
         for ( var batch in batches ) {
             var asyncQueue = [];
@@ -129,11 +164,11 @@ component singleton accessors="true" {
             var fallbackStartIndex = 0;
 
             for ( var i = 1; i <= batch.len(); i++ ) {
-                var email = batch[ i ];
-                var req = callback( email );
+                var subscriberEmail = batch[ i ];
+                var req = callback( subscriberEmail );
 
                 try {
-                    arrayAppend( asyncQueue, { email: email, future: req.sendAsync() } );
+                    arrayAppend( asyncQueue, { subscriberEmail: subscriberEmail, future: req.sendAsync() } );
                 } catch ( any e ) {
                     if (
                         e.type == "MissingAsyncManager"
@@ -146,56 +181,68 @@ component singleton accessors="true" {
 
                     arrayAppend(
                         allResults,
-                        buildErrorResult( email = email, errorMessage = e.message, exceptionType = e.type )
+                        buildErrorResult(
+                            subscriberEmail = subscriberEmail,
+                            errorMessage = e.message,
+                            exceptionType = e.type
+                        )
                     );
                 }
             }
 
             if ( asyncSupported ) {
                 for ( var pending in asyncQueue ) {
-                    arrayAppend( allResults, resolveFutureResult( pending.email, pending.future ) );
+                    arrayAppend( allResults, resolveFutureResult( pending.subscriberEmail, pending.future ) );
                 }
                 continue;
             }
 
             // Resolve any already-queued async requests first so they are not re-sent in fallback mode.
             for ( var pending in asyncQueue ) {
-                arrayAppend( allResults, resolveFutureResult( pending.email, pending.future ) );
+                arrayAppend( allResults, resolveFutureResult( pending.subscriberEmail, pending.future ) );
             }
 
             // Only process the remaining unqueued emails sequentially.
             for ( var i = fallbackStartIndex; i <= batch.len(); i++ ) {
-                var email = batch[ i ];
-                var req = callback( email );
-                arrayAppend( allResults, sendSequential( email, req ) );
+                var subscriberEmail = batch[ i ];
+                var req = callback( subscriberEmail );
+                arrayAppend( allResults, sendSequential( subscriberEmail, req ) );
             }
         }
 
         return allResults;
     }
 
-    private struct function resolveFutureResult( required string email, required any future ) {
+    private struct function resolveFutureResult( required string subscriberEmail, required any future ) {
         try {
             var response = arguments.future.get();
-            return buildResponseResult( arguments.email, response );
+            return buildResponseResult( arguments.subscriberEmail, response );
         } catch ( any e ) {
-            return buildErrorResult( email = arguments.email, errorMessage = e.message, exceptionType = e.type );
+            return buildErrorResult(
+                subscriberEmail = arguments.subscriberEmail,
+                errorMessage = e.message,
+                exceptionType = e.type
+            );
         }
     }
 
-    private struct function sendSequential( required string email, required any req ) {
+    private struct function sendSequential( required string subscriberEmail, required any req ) {
         try {
-            return buildResponseResult( arguments.email, req.send() );
+            return buildResponseResult( arguments.subscriberEmail, req.send() );
         } catch ( any e ) {
-            return buildErrorResult( email = arguments.email, errorMessage = e.message, exceptionType = e.type );
+            return buildErrorResult(
+                subscriberEmail = arguments.subscriberEmail,
+                errorMessage = e.message,
+                exceptionType = e.type
+            );
         }
     }
 
-    private struct function buildResponseResult( required string email, required any response ) {
+    private struct function buildResponseResult( required string subscriberEmail, required any response ) {
         var memento = arguments.response.getMemento();
         memento[ "request" ] = arguments.response.getRequest().getMemento();
         return {
-            "subscriber": arguments.email,
+            "subscriber": arguments.subscriberEmail,
             "success": arguments.response.isSuccess(),
             "statusCode": arguments.response.getStatusCode(),
             "response": memento,
@@ -205,12 +252,12 @@ component singleton accessors="true" {
     }
 
     private struct function buildErrorResult(
-        required string email,
+        required string subscriberEmail,
         required string errorMessage,
         string exceptionType = ""
     ) {
         return {
-            "subscriber": arguments.email,
+            "subscriber": arguments.subscriberEmail,
             "success": false,
             "statusCode": 0,
             "response": javacast( "null", 0 ),
@@ -224,13 +271,13 @@ component singleton accessors="true" {
         var preflightFailures = [];
 
         for ( var subscriber in arguments.subscribers ) {
-            var email = trim( toString( subscriber ) );
+            var subscriberEmail = trim( toString( subscriber ) );
 
-            if ( !isValidEmail( email ) ) {
+            if ( !isValidEmail( subscriberEmail ) ) {
                 arrayAppend(
                     preflightFailures,
                     buildErrorResult(
-                        email = email,
+                        subscriberEmail = subscriberEmail,
                         errorMessage = "Subscriber email cannot be blank.",
                         exceptionType = "InvalidSubscriber"
                     )
@@ -238,7 +285,7 @@ component singleton accessors="true" {
                 continue;
             }
 
-            arrayAppend( validEmails, email );
+            arrayAppend( validEmails, subscriberEmail );
         }
 
         return {
@@ -248,9 +295,9 @@ component singleton accessors="true" {
         };
     }
 
-    private boolean function isValidEmail( required string email ) {
+    private boolean function isValidEmail( required string subscriberEmail ) {
         // Intentionally avoid format validation; Cordial should decide what it accepts.
-        return len( arguments.email );
+        return len( arguments.subscriberEmail );
     }
 
     private numeric function normalizeConcurrency( required numeric value ) {

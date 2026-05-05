@@ -118,6 +118,51 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 } );
             } );
 
+            it( "builds unsubscribeAll requests for each valid subscriber", function() {
+                var result = variables.client.unsubscribeAll(
+                    subscribers = [ "person1@example.com", "person2@example.com" ],
+                    concurrencyLimit = 2
+                );
+
+                expect( result.total ).toBe( 2 );
+                expect( result.success ).toBeTrue();
+                expect( result.succeeded ).toBe( 2 );
+                expect( result.failed ).toBe( 0 );
+                expect( result.results ).toHaveLength( 2 );
+                expect( result.results[ 1 ].subscriber ).toBe( "person1@example.com" );
+                expect( result.results[ 1 ].success ).toBeTrue();
+                expect( result.results[ 1 ].statusCode ).toBeGTE( 200 );
+                expect( result.results[ 1 ].statusCode ).toBeLT( 300 );
+                expect( result.results[ 2 ].subscriber ).toBe( "person2@example.com" );
+                expect( result.results[ 2 ].success ).toBeTrue();
+                expect( result.results[ 2 ].statusCode ).toBeGTE( 200 );
+                expect( result.results[ 2 ].statusCode ).toBeLT( 300 );
+                expect( variables.hyper ).toHaveSentCount( 2 );
+
+                expect( variables.hyper ).toHaveSentRequest( function( req ) {
+                    return req.getMethod() == "PUT"
+                    && req.getUrl().startsWith( "/v2/contacts/email:" )
+                    && req.getUrl().endsWith( "/unsubscribe/email" )
+                    && findNoCase( "person1", req.getUrl() );
+                } );
+            } );
+
+            it( "url encodes special characters for unsubscribeAll endpoint email key", function() {
+                var result = variables.client.unsubscribeAll( subscribers = [ "first.last+promo%tag@example.com" ] );
+
+                expect( result.total ).toBe( 1 );
+                expect( result.success ).toBeTrue();
+                expect( variables.hyper ).toHaveSentCount( 1 );
+
+                expect( variables.hyper ).toHaveSentRequest( function( req ) {
+                    var requestURL = req.getUrl();
+                    return req.getMethod() == "PUT"
+                    && requestURL.endsWith( "/unsubscribe/email" )
+                    && findNoCase( "%25", requestURL )
+                    && ( findNoCase( "%2B", requestURL ) || findNoCase( "+", requestURL ) );
+                } );
+            } );
+
             it( "throws for an empty list key", function() {
                 expect( function() {
                     variables.client.create( listKey = "", subscribers = [ "person@example.com" ] );
@@ -133,6 +178,12 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
             it( "throws for an empty subscriber array", function() {
                 expect( function() {
                     variables.client.cancel( listKey = "myList", subscribers = [] );
+                } ).toThrow( type = "cordial-sdk.InvalidSubscribers" );
+            } );
+
+            it( "throws for an empty subscriber array when unsubscribing from all emails", function() {
+                expect( function() {
+                    variables.client.unsubscribeAll( subscribers = [] );
                 } ).toThrow( type = "cordial-sdk.InvalidSubscribers" );
             } );
 
@@ -177,8 +228,36 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( variables.hyper ).toHaveSentCount( 1 );
             } );
 
+            it( "returns mixed success and failure details for unsubscribeAll when a subscriber is blank", function() {
+                var result = variables.client.unsubscribeAll( subscribers = [ "person@example.com", "" ] );
+
+                expect( result.total ).toBe( 2 );
+                expect( result.success ).toBeFalse();
+                expect( result.succeeded ).toBe( 1 );
+                expect( result.failed ).toBe( 1 );
+                expect( result.results ).toHaveLength( 2 );
+                expect( result.results[ 1 ].subscriber ).toBe( "" );
+                expect( result.results[ 1 ].exceptionType ).toBe( "InvalidSubscriber" );
+                expect( result.results[ 2 ].subscriber ).toBe( "person@example.com" );
+                expect( result.results[ 2 ].success ).toBeTrue();
+                expect( variables.hyper ).toHaveSentCount( 1 );
+            } );
+
             it( "returns only preflight failures for cancel when all subscribers are blank", function() {
                 var result = variables.client.cancel( listKey = "myList", subscribers = [ "", "   " ] );
+
+                expect( result.total ).toBe( 2 );
+                expect( result.success ).toBeFalse();
+                expect( result.succeeded ).toBe( 0 );
+                expect( result.failed ).toBe( 2 );
+                expect( result.results ).toHaveLength( 2 );
+                expect( result.results[ 1 ].exceptionType ).toBe( "InvalidSubscriber" );
+                expect( result.results[ 2 ].exceptionType ).toBe( "InvalidSubscriber" );
+                expect( variables.hyper ).toHaveSentNothing();
+            } );
+
+            it( "returns only preflight failures for unsubscribeAll when all subscribers are blank", function() {
+                var result = variables.client.unsubscribeAll( subscribers = [ "", "   " ] );
 
                 expect( result.total ).toBe( 2 );
                 expect( result.success ).toBeFalse();
@@ -249,6 +328,26 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                     .preventStrayRequests();
 
                 var result = variables.client.cancel( listKey = "myList", subscribers = [ "person@example.com" ] );
+
+                expect( result.total ).toBe( 1 );
+                expect( result.success ).toBeFalse();
+                expect( result.succeeded ).toBe( 0 );
+                expect( result.failed ).toBe( 1 );
+                expect( result.results[ 1 ].subscriber ).toBe( "person@example.com" );
+                expect( result.results[ 1 ].success ).toBeFalse();
+                expect( result.results[ 1 ].statusCode ).toBe( 503 );
+            } );
+
+            it( "marks unsubscribeAll results as failed when Cordial returns non-2xx", function() {
+                variables.hyper
+                    .fake( {
+                        "*/v2/contacts/email:*/unsubscribe/email": function( newFakeResponse, req ) {
+                            return newFakeResponse( 503, "Service Unavailable", "{}" );
+                        }
+                    } )
+                    .preventStrayRequests();
+
+                var result = variables.client.unsubscribeAll( subscribers = [ "person@example.com" ] );
 
                 expect( result.total ).toBe( 1 );
                 expect( result.success ).toBeFalse();

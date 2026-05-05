@@ -101,9 +101,31 @@ Behavior:
 * Does not perform global channel unsubscribe.
 * Invalid email entries are reported as failures and do not generate HTTP requests.
 
+#### unsubscribeAll
+
+Unsubscribes many subscribers from all emails by setting their email channel subscribe status to `unsubscribed`.
+
+```cfc
+var result = subscriptions.unsubscribeAll(
+    subscribers = [ "one@example.com", "two@example.com" ],
+    concurrencyLimit = 5
+);
+```
+
+| Name | Type | Required? | Default | Description |
+| ---- | ---- | --------- | ------- | ----------- |
+| `subscribers` | Array<String> | `true` | | Email subscribers for this operation. |
+| `concurrencyLimit` | Numeric | `false` | module setting | Max async requests in each chunk. |
+
+Behavior:
+
+* Uses `PUT /v2/contacts/email:{urlEncodedEmail}/unsubscribe/email` per valid subscriber.
+* Performs a global email channel unsubscribe, not a list membership update.
+* Invalid email entries are reported as failures and do not generate HTTP requests.
+
 ## Return Contract
 
-Both methods return an aggregate result struct:
+All methods return an aggregate result struct:
 
 ```cfc
 {

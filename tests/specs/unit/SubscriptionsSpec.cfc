@@ -318,6 +318,35 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.results[ 1 ].statusCode ).toBe( 429 );
             } );
 
+            it( "sanitizes request credentials from operation result response mementos", function() {
+                var credentialedHyper = new Hyper.models.HyperBuilder(
+                    defaults = new Hyper.models.HyperRequest()
+                        .setUsername( "secret-api-key" )
+                        .setPassword( "secret-password" )
+                ).fake( {
+                        "*/v2/contacts": function( newFakeResponse, req ) {
+                            return newFakeResponse( 429, "Too Many Requests", "{}" );
+                        }
+                    } )
+                    .preventStrayRequests();
+
+                variables.client.setHyperClient( credentialedHyper );
+
+                var result = variables.client.create( listKey = "myList", subscribers = [ "person@example.com" ] );
+                var requestMemento = result.results[ 1 ].response.request;
+
+                expect( requestMemento.method ).toBe( "POST" );
+                expect( requestMemento.url ).toBe( "/v2/contacts" );
+                expect( requestMemento ).notToHaveKey( "authType" );
+                expect( requestMemento ).notToHaveKey( "clientCert" );
+                expect( requestMemento ).notToHaveKey( "clientCertPassword" );
+                expect( requestMemento ).notToHaveKey( "domain" );
+                expect( requestMemento ).notToHaveKey( "headers" );
+                expect( requestMemento ).notToHaveKey( "password" );
+                expect( requestMemento ).notToHaveKey( "username" );
+                expect( requestMemento ).notToHaveKey( "workstation" );
+            } );
+
             it( "marks cancel results as failed when Cordial returns non-2xx", function() {
                 variables.hyper
                     .fake( {

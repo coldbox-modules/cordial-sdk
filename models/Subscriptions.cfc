@@ -240,7 +240,20 @@ component singleton accessors="true" {
 
     private struct function buildResponseResult( required string subscriberEmail, required any response ) {
         var memento = arguments.response.getMemento();
-        memento[ "request" ] = arguments.response.getRequest().getMemento();
+        memento[ "request" ] = arguments.response
+            .getRequest()
+            .getMemento(
+                excludes = [
+                    "authType",
+                    "clientCert",
+                    "clientCertPassword",
+                    "domain",
+                    "headers",
+                    "password",
+                    "username",
+                    "workstation"
+                ]
+            );
         return {
             "subscriber": arguments.subscriberEmail,
             "success": arguments.response.isSuccess(),

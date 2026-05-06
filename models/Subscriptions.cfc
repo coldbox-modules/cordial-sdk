@@ -242,16 +242,18 @@ component singleton accessors="true" {
         var memento = arguments.response.getMemento();
         memento[ "request" ] = arguments.response
             .getRequest()
-            .getMemento( [
-                "authType",
-                "clientCert",
-                "clientCertPassword",
-                "domain",
-                "headers",
-                "password",
-                "username",
-                "workstation"
-            ] );
+            .getMemento(
+                excludes = [
+                    "authType",
+                    "clientCert",
+                    "clientCertPassword",
+                    "domain",
+                    "headers",
+                    "password",
+                    "username",
+                    "workstation"
+                ]
+            );
         return {
             "subscriber": arguments.subscriberEmail,
             "success": arguments.response.isSuccess(),

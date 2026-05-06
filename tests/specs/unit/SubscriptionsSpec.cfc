@@ -359,12 +359,10 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
             } );
 
             it( "handles async future failures and returns mixed results", function() {
-                variables.fakeInvocationCount = 0;
                 variables.hyper
                     .fake( {
                         "*/v2/contacts": function( newFakeResponse, req ) {
-                            variables.fakeInvocationCount++;
-                            if ( variables.fakeInvocationCount == 1 ) {
+                            if ( req.getBody().channels.email.address == "explode@example.com" ) {
                                 throw( type = "AsyncFutureBoom", message = "Boom from fake response callback" );
                             }
                             return newFakeResponse( 201, "Created", "{}" );

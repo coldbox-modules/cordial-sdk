@@ -327,6 +327,8 @@ component singleton accessors="true" {
 
     private void function finalizeResult( required struct aggregate ) {
         for ( var item in arguments.aggregate.results ) {
+            item.success = normalizeSuccessFlag( item.success );
+
             if ( item.success ) {
                 arguments.aggregate.succeeded++;
             } else {
@@ -335,6 +337,14 @@ component singleton accessors="true" {
         }
 
         arguments.aggregate.success = arguments.aggregate.failed == 0;
+    }
+
+    private boolean function normalizeSuccessFlag( required any value ) {
+        if ( isBoolean( arguments.value ) ) {
+            return javacast( "boolean", arguments.value );
+        }
+
+        return listFindNoCase( "true,yes,1", trim( toString( arguments.value ) ) ) > 0;
     }
 
     private void function validateListKey( required string listKey ) {

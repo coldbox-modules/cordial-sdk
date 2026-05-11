@@ -123,6 +123,29 @@ Behavior:
 * Performs a global email channel unsubscribe, not a list membership update.
 * Invalid email entries are reported as failures and do not generate HTTP requests.
 
+#### resubscribe
+
+Resubscribes many subscribers to the email channel.
+
+```cfc
+var result = subscriptions.resubscribe(
+    subscribers = [ "one@example.com", "two@example.com" ],
+    concurrencyLimit = 5
+);
+```
+
+| Name | Type | Required? | Default | Description |
+| ---- | ---- | --------- | ------- | ----------- |
+| `subscribers` | Array<String> | `true` | | Email subscribers for this operation. |
+| `concurrencyLimit` | Numeric | `false` | module setting | Max async requests in each chunk. |
+
+Behavior:
+
+* Uses `PUT /v2/contacts/email:{urlEncodedEmail}` per valid subscriber.
+* Sets `forceSubscribe = true` and `channels.email.subscribeStatus = "subscribed"`.
+* Performs a global email channel resubscribe, not a list membership update.
+* Invalid email entries are reported as failures and do not generate HTTP requests.
+
 ## Return Contract
 
 All methods return an aggregate result struct:

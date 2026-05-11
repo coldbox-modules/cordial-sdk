@@ -132,6 +132,40 @@ component singleton accessors="true" {
         return result;
     }
 
+    /**
+     * Resubscribe many subscribers to the email channel.
+     */
+    function resubscribe( required array subscribers, numeric concurrencyLimit = variables.maxConcurrency ) {
+        validateSubscribersArray( arguments.subscribers );
+
+        var normalized = normalizeSubscribers( arguments.subscribers );
+        var result = newAggregateResult( normalized.totalRequested );
+
+        arrayAppend( result.results, normalized.preflightFailures, true );
+
+        if ( !normalized.validEmails.len() ) {
+            finalizeResult( result );
+            return result;
+        }
+
+        var operationResults = executeInParallel(
+            emails = normalized.validEmails,
+            concurrencyLimit = normalizeConcurrency( arguments.concurrencyLimit ),
+            callback = function( required string subscriberEmail ) {
+                return hyperClient
+                    .new()
+                    .setMethod( "PUT" )
+                    .setUrl( "/v2/contacts/email:#urlEncodedFormat( subscriberEmail )#" )
+                    .setBody( buildResubscribePayload() );
+            }
+        );
+
+        arrayAppend( result.results, operationResults, true );
+        finalizeResult( result );
+
+        return result;
+    }
+
     private struct function buildSubscribePayload(
         required string listKey,
         required string subscriberEmail,
@@ -148,6 +182,10 @@ component singleton accessors="true" {
         }
 
         return payload;
+    }
+
+    private struct function buildResubscribePayload() {
+        return { "forceSubscribe": true, "channels": { "email": { "subscribeStatus": "subscribed" } } };
     }
 
     private array function executeInParallel(

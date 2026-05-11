@@ -53,6 +53,7 @@ jobs:
           box install
 
       - name: Start ${{ matrix.cfengine }} Server
+        continue-on-error: ${{ matrix.experimental }}
         env:
           CORDIAL_SDK_API_KEY: ${{ secrets.CORDIAL_SDK_API_KEY }}
           CORDIAL_SDK_BASE_URL: ${{ secrets.CORDIAL_SDK_BASE_URL }}

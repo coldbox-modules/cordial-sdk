@@ -81,6 +81,7 @@ jobs:
         with:
           files: tests/results/**/*.xml
           check_name: "${{ matrix.cfengine }} Test Results (FULL_NULL=${{ matrix.fullNull }})"
+          comment_mode: "off"
 
       - name: Upload Test Results to Artifacts
         if: always()

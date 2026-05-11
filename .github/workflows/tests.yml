@@ -79,13 +79,13 @@ jobs:
         if: always()
         with:
           files: tests/results/**/*.xml
-          check_name: "${{ matrix.cfengine }} Test Results"
+          check_name: "${{ matrix.cfengine }} Test Results (FULL_NULL=${{ matrix.fullNull }})"
 
       - name: Upload Test Results to Artifacts
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-${{ matrix.cfengine }}
+          name: test-results-${{ matrix.cfengine }}-fullNull-${{ matrix.fullNull }}
           path: |
             tests/results/**/*
 
@@ -98,7 +98,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7
         with:
-          name: Failure Debugging Info - ${{ matrix.cfengine }}
+          name: Failure Debugging Info - ${{ matrix.cfengine }} - FULL_NULL=${{ matrix.fullNull }}
           path: |
             .engine/**/logs/*
             .engine/**/WEB-INF/cfusion/logs/*
@@ -111,6 +111,6 @@ jobs:
           SLACK_COLOR: ${{ job.status }}
           SLACK_ICON_EMOJI: ":bell:"
           SLACK_MESSAGE: '${{ github.repository }} tests failed :cry:'
-          SLACK_TITLE: ${{ github.repository }} Tests For ${{ matrix.cfengine }} failed
+          SLACK_TITLE: ${{ github.repository }} Tests For ${{ matrix.cfengine }} FULL_NULL=${{ matrix.fullNull }} failed
           SLACK_USERNAME: CI
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

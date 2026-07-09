@@ -17,9 +17,10 @@ component singleton accessors="true" {
         numeric maxConcurrency = variables.maxConcurrency,
         string listKeys
     ) {
-
-		// verify our emails first
-		var normalized = normalizeEmails( arguments.subscribers.map( ( sub ) => isSimpleValue( sub ) ? sub : ( sub.email ?: "" ) ) );
+        // verify our emails first
+        var normalized = normalizeEmails(
+            arguments.subscribers.map( ( sub ) => isSimpleValue( sub ) ? sub : ( sub.email ?: "" ) )
+        );
 
         var result = newAggregateResult( normalized.totalRequested );
 
@@ -173,23 +174,21 @@ component singleton accessors="true" {
         required any subscriber,
         required boolean shouldForceSubscribe
     ) {
-		if( isSimpleValue( arguments.subscriber ) ){
-			arguments.subscriber = {
-				"email" : arguments.subscriber
-			};
-		}
+        if ( isSimpleValue( arguments.subscriber ) ) {
+            arguments.subscriber = { "email": arguments.subscriber };
+        }
 
         var payload = {
             "channels": { "email": { "address": arguments.subscriber.email, "subscribeStatus": "subscribed" } }
         };
 
-		payload.append( arguments.subscriber.filter( ( key, value ) => key != "email" ), false );
+        payload.append( arguments.subscriber.filter( ( key, value ) => key != "email" ), false );
 
-		if( len( arguments.listKeys ) ){
-			listToArray( arguments.listKeys ).each( ( key ) => {
-				payload[ key ] = true;
-			});
-		}
+        if ( len( arguments.listKeys ) ) {
+            listToArray( arguments.listKeys ).each( ( key ) => {
+                payload[ key ] = true;
+            } );
+        }
 
         if ( arguments.shouldForceSubscribe ) {
             payload.forceSubscribe = true;
@@ -233,11 +232,7 @@ component singleton accessors="true" {
 
                     arrayAppend(
                         allResults,
-                        buildErrorResult(
-                            subscriber = subscriber,
-                            errorMessage = e.message,
-                            exceptionType = e.type
-                        )
+                        buildErrorResult( subscriber = subscriber, errorMessage = e.message, exceptionType = e.type )
                     );
                 }
             }

@@ -55,24 +55,24 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
             } );
 
 
-			it( "builds subscribe requests for each valid subscriber struct and no lists", function() {
+            it( "builds subscribe requests for each valid subscriber struct and no lists", function() {
                 var result = variables.client.create(
                     subscribers = [
-						{
-							"first_name" : "Person",
-							"last_name" : "One",
-							"email" : "person1@example.com",
-							"location.postal_code": "00001",
-							"age" : 20
-						},
-						{
-							"first_name" : "Person",
-							"last_name" : "Two",
-							"email" : "person2@example.com",
-							"location.postal_code": "00001",
-							"age" : 22
-						}
-					],
+                        {
+                            "first_name": "Person",
+                            "last_name": "One",
+                            "email": "person1@example.com",
+                            "location.postal_code": "00001",
+                            "age": 20
+                        },
+                        {
+                            "first_name": "Person",
+                            "last_name": "Two",
+                            "email": "person2@example.com",
+                            "location.postal_code": "00001",
+                            "age": 22
+                        }
+                    ],
                     forceSubscribe = true,
                     maxConcurrency = 1
                 );
@@ -82,22 +82,22 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.succeeded ).toBe( 2 );
                 expect( result.failed ).toBe( 0 );
                 expect( result.results ).toHaveLength( 2 );
-				debug( result.results[ 1 ] );
+                debug( result.results[ 1 ] );
                 expect( result.results[ 1 ].subscriber ).toBeStruct();
-				expect( result.results[ 1 ].subscriber.email ).toBe( "person1@example.com" );
-				expect( result.results[ 1 ].subscriber.first_name ).toBe( "Person" );
-				expect( result.results[ 1 ].subscriber.last_name ).toBe( "One" );
-				expect( result.results[ 1 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
-				expect( result.results[ 1 ].subscriber.age ).toBe( 20 );
+                expect( result.results[ 1 ].subscriber.email ).toBe( "person1@example.com" );
+                expect( result.results[ 1 ].subscriber.first_name ).toBe( "Person" );
+                expect( result.results[ 1 ].subscriber.last_name ).toBe( "One" );
+                expect( result.results[ 1 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
+                expect( result.results[ 1 ].subscriber.age ).toBe( 20 );
                 expect( result.results[ 1 ].success ).toBeTrue();
                 expect( result.results[ 1 ].statusCode ).toBeGTE( 200 );
                 expect( result.results[ 1 ].statusCode ).toBeLT( 300 );
                 expect( result.results[ 2 ].subscriber ).toBeStruct();
-				expect( result.results[ 2 ].subscriber.email ).toBe( "person2@example.com" );
-				expect( result.results[ 2 ].subscriber.first_name ).toBe( "Person" );
-				expect( result.results[ 2 ].subscriber.last_name ).toBe( "Two" );
-				expect( result.results[ 2 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
-				expect( result.results[ 2 ].subscriber.age ).toBe( 22 );
+                expect( result.results[ 2 ].subscriber.email ).toBe( "person2@example.com" );
+                expect( result.results[ 2 ].subscriber.first_name ).toBe( "Person" );
+                expect( result.results[ 2 ].subscriber.last_name ).toBe( "Two" );
+                expect( result.results[ 2 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
+                expect( result.results[ 2 ].subscriber.age ).toBe( 22 );
                 expect( result.results[ 2 ].success ).toBeTrue();
                 expect( result.results[ 2 ].statusCode ).toBeGTE( 200 );
                 expect( result.results[ 2 ].statusCode ).toBeLT( 300 );

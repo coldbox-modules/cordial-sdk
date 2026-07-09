@@ -22,7 +22,7 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
 
             it( "builds subscribe requests for each valid subscriber", function() {
                 var result = variables.client.create(
-                    listKey = "myList",
+                    listKeys = "myList",
                     subscribers = [ "person1@example.com", "person2@example.com" ],
                     forceSubscribe = true,
                     maxConcurrency = 1
@@ -50,6 +50,65 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                     && body.channels.email.address == "person1@example.com"
                     && body.channels.email.subscribeStatus == "subscribed"
                     && body.myList == true
+                    && body.forceSubscribe == true;
+                } );
+            } );
+
+
+			it( "builds subscribe requests for each valid subscriber struct and no lists", function() {
+                var result = variables.client.create(
+                    subscribers = [
+						{
+							"first_name" : "Person",
+							"last_name" : "One",
+							"email" : "person1@example.com",
+							"location.postal_code": "00001",
+							"age" : 20
+						},
+						{
+							"first_name" : "Person",
+							"last_name" : "Two",
+							"email" : "person2@example.com",
+							"location.postal_code": "00001",
+							"age" : 22
+						}
+					],
+                    forceSubscribe = true,
+                    maxConcurrency = 1
+                );
+
+                expect( result.total ).toBe( 2 );
+                expect( result.success ).toBeTrue();
+                expect( result.succeeded ).toBe( 2 );
+                expect( result.failed ).toBe( 0 );
+                expect( result.results ).toHaveLength( 2 );
+				debug( result.results[ 1 ] );
+                expect( result.results[ 1 ].subscriber ).toBeStruct();
+				expect( result.results[ 1 ].subscriber.email ).toBe( "person1@example.com" );
+				expect( result.results[ 1 ].subscriber.first_name ).toBe( "Person" );
+				expect( result.results[ 1 ].subscriber.last_name ).toBe( "One" );
+				expect( result.results[ 1 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
+				expect( result.results[ 1 ].subscriber.age ).toBe( 20 );
+                expect( result.results[ 1 ].success ).toBeTrue();
+                expect( result.results[ 1 ].statusCode ).toBeGTE( 200 );
+                expect( result.results[ 1 ].statusCode ).toBeLT( 300 );
+                expect( result.results[ 2 ].subscriber ).toBeStruct();
+				expect( result.results[ 2 ].subscriber.email ).toBe( "person2@example.com" );
+				expect( result.results[ 2 ].subscriber.first_name ).toBe( "Person" );
+				expect( result.results[ 2 ].subscriber.last_name ).toBe( "Two" );
+				expect( result.results[ 2 ].subscriber[ "location.postal_code" ] ).toBe( "00001" );
+				expect( result.results[ 2 ].subscriber.age ).toBe( 22 );
+                expect( result.results[ 2 ].success ).toBeTrue();
+                expect( result.results[ 2 ].statusCode ).toBeGTE( 200 );
+                expect( result.results[ 2 ].statusCode ).toBeLT( 300 );
+                expect( variables.hyper ).toHaveSentCount( 2 );
+
+                expect( variables.hyper ).toHaveSentRequest( function( req ) {
+                    var body = req.getBody();
+                    return req.getMethod() == "POST"
+                    && req.getUrl() == "/v2/contacts"
+                    && body.channels.email.address == "person1@example.com"
+                    && body.channels.email.subscribeStatus == "subscribed"
                     && body.forceSubscribe == true;
                 } );
             } );
@@ -209,12 +268,6 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                     && findNoCase( "%25", requestURL )
                     && ( findNoCase( "%2B", requestURL ) || findNoCase( "+", requestURL ) );
                 } );
-            } );
-
-            it( "throws for an empty list key", function() {
-                expect( function() {
-                    variables.client.create( listKey = "", subscribers = [ "person@example.com" ] );
-                } ).toThrow( type = "cordial-sdk.InvalidListKey" );
             } );
 
             it( "throws for a whitespace-only list key", function() {

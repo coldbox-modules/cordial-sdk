@@ -82,7 +82,6 @@ component extends="tests.resources.ModuleIntegrationSpec" appMapping="/app" {
                 expect( result.succeeded ).toBe( 2 );
                 expect( result.failed ).toBe( 0 );
                 expect( result.results ).toHaveLength( 2 );
-                debug( result.results[ 1 ] );
                 expect( result.results[ 1 ].subscriber ).toBeStruct();
                 expect( result.results[ 1 ].subscriber.email ).toBe( "person1@example.com" );
                 expect( result.results[ 1 ].subscriber.first_name ).toBe( "Person" );

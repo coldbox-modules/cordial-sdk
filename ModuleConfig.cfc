@@ -4,6 +4,8 @@ component {
     this.author = "Ortus Solutions";
     this.webUrl = "https://github.com/coldbox-modules/cordial-sdk";
     this.dependencies = [ "hyper" ];
+	this.cfmapping = "cordial-sdk";
+    this.modelNamespace = "cordial-sdk";
 
     function configure() {
         settings = {

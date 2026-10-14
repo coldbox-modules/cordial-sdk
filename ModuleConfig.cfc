@@ -31,6 +31,7 @@ component {
                 password = "",
                 baseURL = settings.baseURL,
                 bodyFormat = "json",
+				encodeURL=false,
                 headers = { "Content-Type": "application/json", "Accept": "application/json" }
             );
     }
